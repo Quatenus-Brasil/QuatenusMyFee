@@ -1,0 +1,101 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital@0;1&display=swap");
+
+:root {
+  --primary: #f36e21;
+  --secondary: #00968f;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  padding-top: 0;
+  text-align: center;
+}
+
+* {
+  font-family: "Nunito";
+  /* outline: red solid 1px; */
+}
+
+body {
+  background: #f1f1f1;
+  margin: 0;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em var(--primary));
+}
+
+.btn-qorange {
+  --bs-btn-color: #fff !important;
+  --bs-btn-bg: var(--primary) !important;
+  --bs-btn-border-color: var(--primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--primary);
+  --bs-btn-focus-shadow-rgb: 225, 83, 97;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--primary);
+  --bs-btn-disabled-border-color: var(--primary);
+}
+
+.btn-qblue {
+  --bs-btn-color: #fff !important;
+  --bs-btn-bg: var(--secondary) !important;
+  --bs-btn-border-color: var(--secondary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--secondary);
+  --bs-btn-focus-shadow-rgb: 225, 83, 97;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--secondary);
+  --bs-btn-disabled-border-color: var(--secondary);
+}
+
+.accordion-button:not(.collapsed) {
+  color: white !important;
+  background-color: var(--primary) !important;
+}
+
+.green-circle {
+  width: 10px;
+  height: 10px;
+  background-color: rgb(9, 204, 9);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.red-circle {
+  width: 10px;
+  height: 10px;
+  background-color: rgb(204, 9, 9);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.modal-xl {
+  max-width: 1400px !important;
+}
+
+.bg-qorange {
+  background-color: var(--primary);
+}
+
+.text-qorange {
+  color: var(--primary);
+}
