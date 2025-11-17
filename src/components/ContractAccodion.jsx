@@ -10,7 +10,7 @@ const ContractAccodion = ({ contract }) => {
             data-bs-target={`#collapse-${contract.Id}`}
             aria-expanded="false"
             aria-controls={`collapse-${contract.Id}`}>
-            Contrato: {contract.QbmDocumentId} | {contract.CustomerBusinessEntityDescription} 
+            Contrato: {contract.QbmDocumentId} | {`${contract.CustomerBusinessEntityDescription || "N/A"}`}
             <p className="ps-1 m-0"> | {contract.DocumentStateToGrid}</p>
           </button>
         </h2>
@@ -18,19 +18,29 @@ const ContractAccodion = ({ contract }) => {
           <div className="accordion-body">
             <div className="row">
               <div className="col-md-6 text-start">
-                <p className="mb-2"><strong>Status:</strong> {contract.DocumentStateToGrid} </p>
-                <p className="mb-2"><strong>Contrato:</strong> {contract.QbmDocumentId}</p>
-                <p className="mb-2"><strong>Cliente:</strong> {contract.CustomerBusinessEntityDescription}</p>
-                <p className="mb-2"><strong>CNPJ:</strong> {contract.CustomerBusinessEntityNationalTaxNumber}</p>
-                <p className="mb-2"><strong>CS Responsável</strong> {contract.FollowUpUserDescription.split("-")[0]}</p>
-                <p className="mb-2"><strong>Data</strong> {contract.DocumentDateToGrid}</p>
+                <p className="mb-2">
+                  <strong>Status:</strong> {`${contract.DocumentStateToGrid || "N/A"}`}{" "}
+                </p>
+                <p className="mb-2">
+                  <strong>Contrato:</strong> {`${contract.QbmDocumentId || "N/A"}`}
+                </p>
+                <p className="mb-2">
+                  <strong>Cliente:</strong> {`${contract.CustomerBusinessEntityDescription || "N/A"}`}
+                </p>
+                <p className="mb-2">
+                  <strong>CNPJ:</strong> {`${contract.CustomerBusinessEntityNationalTaxNumber || "N/A"}`}
+                </p>
+                <p className="mb-2">
+                  <strong>CS Responsável</strong> {`${contract.FollowUpUserDescription ? contract.FollowUpUserDescription.split("-")[0] : "N/A"}`}
+                </p>
+                <p className="mb-2">
+                  <strong>Data</strong> {`${contract.DocumentDateToGrid || "N/A"}`}
+                </p>
               </div>
               <div className="vr m-0 p-0"></div>
-              <div className="col-md-6 text-start">
-                
-              </div>
+              <div className="col-md-6 text-start"></div>
             </div>
-            
+
             <hr />
             <small className="text-muted">
               Modificado por {contract.LastUpdatedUserName} em {contract.LastUpdatedDateToGrid}.
