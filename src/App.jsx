@@ -43,12 +43,8 @@ function App() {
     };
 
     try {
-      const response = await axios.post("/api/quatenus10/QBMDats/Documents/Document.svc/json/GetDocuments", body, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      setContracts(response.data.d.Rows || []);
+      const response = await axios.post("/api/quatenus10/QBMDats/Documents/Document.svc/json/GetDocuments", body);
+      setContracts(response.data.d.Rows);
     } catch (error) {
       console.error(error);
       alert("Erro ao buscar contratos. Entre em contato com o suporte.");
