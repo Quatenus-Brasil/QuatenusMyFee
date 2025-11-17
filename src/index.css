@@ -42,3 +42,8 @@ body {
   --bs-btn-disabled-bg: var(--primary);
   --bs-btn-disabled-border-color: var(--primary);
 }
+
+.accordion-button:not(.collapsed) {
+  color: white !important;
+  background-color: var(--primary) !important;
+}

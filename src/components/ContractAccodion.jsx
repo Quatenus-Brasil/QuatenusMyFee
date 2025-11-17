@@ -23,6 +23,7 @@ const ContractAccodion = ({ contract }) => {
                 <p className="mb-2"><strong>Cliente:</strong> {contract.CustomerBusinessEntityDescription}</p>
                 <p className="mb-2"><strong>CNPJ:</strong> {contract.CustomerBusinessEntityNationalTaxNumber}</p>
                 <p className="mb-2"><strong>CS Responsável</strong> {contract.FollowUpUserDescription.split("-")[0]}</p>
+                <p className="mb-2"><strong>Data</strong> {contract.DocumentDateToGrid}</p>
               </div>
               <div className="vr m-0 p-0"></div>
               <div className="col-md-6 text-start">
