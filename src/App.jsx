@@ -2,6 +2,7 @@ import { useState } from "react";
 import myFeeLogo from "/logo-laranja.png";
 import Searchbar from "./components/Searchbar.jsx";
 import ContractAccodion from "./components/ContractAccodion.jsx";
+import ConfigSidebar from "./components/ConfigSidebar.jsx";
 import axios from "axios";
 
 function App() {
@@ -37,8 +38,8 @@ function App() {
         new Date().toISOString().split("T")[0]
       }"},{"Key":"DocType","Value":"Contract"}]}`,
       timeZoneId: "E. South America Standard Time",
-      userName: import.meta.env.VITE_USERNAME,
-      password: import.meta.env.VITE_PASSWORD,
+      userName: localStorage.getItem("qbmUsername"),
+      password: localStorage.getItem("qbmPassword"),
     };
 
     try {
@@ -51,7 +52,8 @@ function App() {
       setContracts(response.data.d.Rows || []);
     } catch (error) {
       console.error(error);
-      alert("Erro ao buscar contratos");
+      alert("Erro ao buscar contratos. Entre em contato com o suporte.");
+      setContracts("");
     } finally {
       setLoading(false);
     }
@@ -59,17 +61,14 @@ function App() {
 
   return (
     <>
+      <ConfigSidebar />
+
       <div>
         <img src={myFeeLogo} className="logo" alt="Logo do MyFee" onClick={handleLogoClick} style={{ cursor: "pointer" }} />
       </div>
 
       <div>
-        <Searchbar 
-          search={search}
-          setSearch={setSearch}
-          handleSearch={handleSearch}
-          loading={loading}
-        />
+        <Searchbar search={search} setSearch={setSearch} handleSearch={handleSearch} loading={loading} />
       </div>
 
       <hr />
@@ -80,10 +79,7 @@ function App() {
           <div>
             <h3>Contratos encontrados ({contracts.length}):</h3>
             {contracts.map((contract) => (
-              <ContractAccodion 
-                key={contract.Id}
-                contract={contract}
-              />
+              <ContractAccodion key={contract.Id} contract={contract} />
             ))}
           </div>
         )}
