@@ -1,6 +1,6 @@
 const ContractAccodion = ({ contract }) => {
   return (
-    <div className="accordion" id={`accordion-${contract.Id}`}>
+    <div className="accordion mb-1" id={`accordion-${contract.Id}`}>
       <div className="accordion-item">
         <h2 className="accordion-header">
           <button
