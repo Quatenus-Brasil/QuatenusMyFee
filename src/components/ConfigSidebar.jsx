@@ -10,8 +10,6 @@ const ConfigSidebar = () => {
   };
 
   const handleSave = () => {
-    console.log("Usuário:", username);
-    console.log("Senha:", password);
     localStorage.setItem("qbmUsername", username);
     localStorage.setItem("qbmPassword", password);
     alert("Usuário e senha salvos.");

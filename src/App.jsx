@@ -48,7 +48,6 @@ function App() {
           "Content-Type": "application/json",
         },
       });
-      console.log(response.data.d);
       setContracts(response.data.d.Rows || []);
     } catch (error) {
       console.error(error);
