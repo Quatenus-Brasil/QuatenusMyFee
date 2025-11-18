@@ -26,7 +26,7 @@ function App() {
       alert("Por favor, insira um termo na pesquisa.");
       return;
     }
-
+    setContracts([]);
     setLoading(true);
     const body = {
       cultureInfo: "pt-BR",
@@ -47,8 +47,8 @@ function App() {
       setContracts(response.data.d.Rows);
     } catch (error) {
       console.error(error);
+      setContracts([]);
       alert("Erro ao buscar contratos. Entre em contato com o suporte.");
-      setContracts("");
     } finally {
       setLoading(false);
     }
