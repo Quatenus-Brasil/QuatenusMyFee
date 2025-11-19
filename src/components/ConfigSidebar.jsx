@@ -4,6 +4,7 @@ const ConfigSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [sector, setSector] = useState("CS");
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -12,7 +13,8 @@ const ConfigSidebar = () => {
   const handleSave = () => {
     localStorage.setItem("qbmUsername", username);
     localStorage.setItem("qbmPassword", password);
-    alert("Usuário e senha salvos.");
+    localStorage.setItem("sector", sector);
+    alert("Usuário, senha e setor salvos.");
   };
 
   const handleClear = () => {
@@ -62,7 +64,7 @@ const ConfigSidebar = () => {
             />
           </div>
 
-          <div className="mb-4">
+          <div className="mb-3">
             <label htmlFor="password" className="form-label">
               <strong>Senha do QBM:</strong>
             </label>
@@ -74,6 +76,16 @@ const ConfigSidebar = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="sector" className="form-label">
+              <strong>Setor:</strong>
+            </label>
+            <select className="form-select form-select-sm" name="sector" id="sector" value={sector} onChange={(e) => setSector(e.target.value)}>
+              <option value="CS">CS</option>
+              <option value="Financeiro">Financeiro</option>
+            </select>
           </div>
 
           <div className="d-grid gap-2">
