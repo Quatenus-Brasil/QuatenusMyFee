@@ -1,10 +1,9 @@
 import { useState } from "react";
 import ContractItems from "./ContractItems.jsx";
 import axios from "axios";
-import MemorialModal from "./MemorialModal.jsx";
 
 const ContractAccodion = ({ contract }) => {
-  const [contractsItems, setContractsItems] = useState(null);
+  const [contractItems, setContractItems] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async (QbmDocumentId) => {
@@ -24,12 +23,11 @@ const ContractAccodion = ({ contract }) => {
 
     try {
       const response = await axios.post("/api/quatenus10/QBMDats/Documents/Document.svc/GetExternalContractsItems", body);
-      console.log(response.data.Rows);
-      setContractsItems(response.data.Rows);
+      setContractItems(response.data.Rows);
     } catch (error) {
       console.error(error);
       alert("Erro ao buscar contratos. Entre em contato com o suporte.");
-      setContractsItems("");
+      setContractItems([]);
     } finally {
       setLoading(false);
     }
@@ -88,8 +86,7 @@ const ContractAccodion = ({ contract }) => {
                 </button>
               </div>
               <div className="col-md-12 text-start p-2 mt-2">
-                <ContractItems contractsItems={contractsItems} loading={loading} />
-                <MemorialModal contractsItems={contractsItems} contract={contract} />
+                <ContractItems contractItems={contractItems} contract={contract} loading={loading} />
               </div>
             </div>
 
