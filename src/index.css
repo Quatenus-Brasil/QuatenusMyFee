@@ -62,3 +62,19 @@ body {
   color: white !important;
   background-color: var(--primary) !important;
 }
+
+.green-circle {
+  width: 10px;
+  height: 10px;
+  background-color: rgb(9, 204, 9);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.red-circle {
+  width: 10px;
+  height: 10px;
+  background-color: rgb(204, 9, 9);
+  border-radius: 50%;
+  display: inline-block;
+}

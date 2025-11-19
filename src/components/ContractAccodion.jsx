@@ -1,20 +1,21 @@
 import { useState } from "react";
-import Proposal from "./Proposal";
+import ContractItems from "./ContractItems.jsx";
 import axios from "axios";
+import MemorialModal from "./MemorialModal.jsx";
 
 const ContractAccodion = ({ contract }) => {
-  const [proposalData, setProposalData] = useState(null);
+  const [contractsItems, setContractsItems] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async (AssociatedQbmDocumentId) => {
-    if (!AssociatedQbmDocumentId) {
-      alert("Este contrato não possui uma proposta associada.");
+  const handleSearch = async (QbmDocumentId) => {
+    if (!QbmDocumentId) {
+      alert("Este contrato não possui itens da proposta associada.");
       return;
     }
 
     setLoading(true);
     const body = {
-      documentId: AssociatedQbmDocumentId,
+      documentId: QbmDocumentId,
       cultureInfo: "pt-BR",
       timeZoneId: "E. South America Standard Time",
       userName: localStorage.getItem("qbmUsername"),
@@ -22,13 +23,13 @@ const ContractAccodion = ({ contract }) => {
     };
 
     try {
-      const response = await axios.post("/api/quatenus10/QBMDats/Documents/Document.svc/GetExternalProposalsItems", body);
+      const response = await axios.post("/api/quatenus10/QBMDats/Documents/Document.svc/GetExternalContractsItems", body);
       console.log(response.data.Rows);
-      setProposalData(response.data.Rows);
+      setContractsItems(response.data.Rows);
     } catch (error) {
       console.error(error);
       alert("Erro ao buscar contratos. Entre em contato com o suporte.");
-      setProposalData("");
+      setContractsItems("");
     } finally {
       setLoading(false);
     }
@@ -62,18 +63,17 @@ const ContractAccodion = ({ contract }) => {
                 <p className="mb-2">
                   <strong>CNPJ:</strong> {`${contract.CustomerBusinessEntityNationalTaxNumber || "N/A"}`}
                 </p>
-
-                <button className="btn btn-sm btn-qorange" onClick={(e) => handleSearch(contract.AssociatedQbmDocumentId)}>
-                  Carregar Proposta
-                </button>
-                {/* <div className="vr position-absolute top-0 end-0 h-50"></div> */}
+                <p className="mb-2">
+                  <strong>Vendedor(a):</strong> {`${contract.AccountUserDescription.split("-")[0] || "N/A"}`}
+                </p>
+                <div className="vr position-absolute top-0 end-0" style={{ height: "95%" }}></div>
               </div>
               <div className="col-md-6 text-start ps-4">
                 <p className="mb-2">
                   <strong>CS Responsável:</strong> {`${contract.FollowUpUserDescription ? contract.FollowUpUserDescription.split("-")[0] : "N/A"}`}
                 </p>
                 <p className="mb-2">
-                  <strong>Data:</strong> {`${contract.DocumentDateToGrid || "N/A"}`}
+                  <strong>Data de Início:</strong> {`${contract.DocumentDateToGrid || "N/A"}`}
                 </p>
                 <p className="mb-2">
                   <strong>Contrato:</strong> {`${contract.QbmDocumentId || "N/A"}`}
@@ -82,8 +82,14 @@ const ContractAccodion = ({ contract }) => {
                   <strong>Proposta Associada:</strong> {`${contract.AssociatedQbmDocumentId || "N/A"}`}
                 </p>
               </div>
-              <div className="col-md-12 text-start ps-4 mt-2">
-                <Proposal proposal={proposalData} loading={loading} />
+              <div>
+                <button className="btn btn-sm btn-qorange float-start" onClick={(e) => handleSearch(contract.QbmDocumentId)}>
+                  Carregar Items
+                </button>
+              </div>
+              <div className="col-md-12 text-start p-2 mt-2">
+                <ContractItems contractsItems={contractsItems} loading={loading} />
+                <MemorialModal contractsItems={contractsItems} contract={contract} />
               </div>
             </div>
 
