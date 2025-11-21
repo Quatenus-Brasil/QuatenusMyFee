@@ -1,25 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const ContractItems = ({ contractItems, contract, loading }) => {
   const [selectedContractItems, setSelectedContractItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [fidelity, setFidelity] = useState(0);
-  const [monthsLeft, setMonthsLeft] = useState(0);
 
-  const getFidelity = (contractItems) => {
-    if (!contractItems || contractItems.length === 0) return 0;
-
-    if (selectedContractItems.length === 0) return 0;
-
-    for (const item of contractItems) {
-      const description = item.QbmItemDescription || "";
-      const match = description.match(/(\d+)\s*meses?/i);
-      if (match) {
-        const months = parseInt(match[1]);
-
-        if ([12, 24, 36, 48, 60].includes(months)) {
-          return months;
-        }
+  const getItemFidelity = (item) => {
+    const description = item.QbmItemDescription || "";
+    const match = description.match(/(\d+)\s*meses?/i);
+    if (match) {
+      const months = parseInt(match[1]);
+      if ([12, 24, 36, 48, 60].includes(months)) {
+        return `${months}`;
       }
     }
     return 0;
@@ -35,19 +26,6 @@ const ContractItems = ({ contractItems, contract, loading }) => {
 
     return monthsDifference > 0 ? monthsDifference : 0;
   };
-
-  useEffect(() => {
-    if (selectedContractItems && selectedContractItems.length > 0) {
-      const calculatedFidelity = getFidelity(selectedContractItems);
-      setFidelity(calculatedFidelity);
-
-      const calculatedMonthsLeft = getMonthsLeft(calculatedFidelity, contract.DocumentDateToGrid);
-      setMonthsLeft(calculatedMonthsLeft);
-    } else if (selectedContractItems.length === 0) {
-      setFidelity(0);
-      setMonthsLeft(0);
-    }
-  }, [selectedContractItems, contract.DocumentDateToGrid]);
 
   const getCancelDate = () => {
     let cancelDate = new Date();
@@ -131,15 +109,10 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                 </div>
                 <div className="modal-body">
                   <p>
-                    <strong>Data do Contrato:</strong> {contract.DocumentDateToGrid.split(" ")[0]} <strong>Fidelidade:</strong>{" "}
-                    {fidelity > 0 ? `${fidelity} meses` : `${fidelity} mês`}
+                    <strong>Data do Contrato:</strong> {contract.DocumentDateToGrid.split(" ")[0]}
                   </p>
                   <p>
                     <strong>Data da Solicitação:</strong> {new Date().toLocaleDateString("pt-BR")} <strong>Data de Encerramento:</strong> {getCancelDate()}{" "}
-                    <strong>Fidelidade Restante:</strong> {monthsLeft} meses
-                  </p>
-                  <p>
-                    <strong>Itens Selecionados:</strong> {selectedContractItems.length}
                   </p>
 
                   {selectedContractItems.length > 0 && (
@@ -151,22 +124,31 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                             <th>QNT</th>
                             <th>Pr. Unit.</th>
                             <th>Val. Líquido</th>
+                            <th>Fidelidade</th>
+                            <th>Restante</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedContractItems.map((item, index) => (
-                            <tr key={index}>
-                              <td>
-                                <div className="row ps-3">{item.QbmItemCode}:</div>
-                                <div className="row ps-3">{item.QbmItemDescription}</div>
-                              </td>
-                              <td style={{ width: "10px" }}>{item.Quantity}</td>
-                              <td style={{ width: "100px" }}>
-                                {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.UnitPrice)}
-                              </td>
-                              <td>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.NetValue)}</td>
-                            </tr>
-                          ))}
+                          {selectedContractItems.map((item, index) => {
+                            const itemFidelityValue = parseInt(getItemFidelity(item));
+                            const itemMonthsLeft = itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : 0;
+
+                            return (
+                              <tr key={index}>
+                                <td>
+                                  <div className="row ps-3">{item.QbmItemCode}:</div>
+                                  <div className="row ps-3">{item.QbmItemDescription}</div>
+                                </td>
+                                <td style={{ width: "10px" }}>{item.Quantity}</td>
+                                <td style={{ width: "100px" }}>
+                                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.UnitPrice)}
+                                </td>
+                                <td>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.NetValue)}</td>
+                                <td>{itemFidelityValue > 0 ? `${itemFidelityValue} meses` : "N/A"}</td>
+                                <td>{itemMonthsLeft > 0 ? `${itemMonthsLeft} meses` : "N/A"}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
