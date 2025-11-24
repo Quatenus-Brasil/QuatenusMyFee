@@ -1,8 +1,12 @@
 import { useState } from "react";
+import dayjs from "dayjs";
 
 const ContractItems = ({ contractItems, contract, loading }) => {
   const [selectedContractItems, setSelectedContractItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [quantities, setQuantities] = useState({});
+  const [percentages, setPercentages] = useState({});
+  const [fees, setFees] = useState({});
 
   const getItemFidelity = (item) => {
     const description = item.QbmItemDescription || "";
@@ -17,14 +21,54 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   };
 
   const getMonthsLeft = (fidelity, contractDate) => {
-    if (fidelity === 0) return 0;
+    if (fidelity === 0) return { months: 0, days: 0, totalMonths: 0, display: "N/A" };
 
-    const contractStartDate = new Date(contractDate.split(" ")[0].split("/").reverse().join("-"));
-    const contractEndDate = new Date(contractStartDate.getFullYear(), contractStartDate.getMonth() + fidelity, contractStartDate.getDate());
-    const currentDate = new Date();
-    const monthsDifference = (contractEndDate.getFullYear() - currentDate.getFullYear()) * 12 + (contractEndDate.getMonth() - currentDate.getMonth());
+    const datePart = contractDate.split(" ")[0]; // Isso aqui ta sendo feito pq o contractDate vem com hora junto
+    const [day, month, year] = datePart.split("/");
+    const contractStart = dayjs(`${year}-${month}-${day}`);
 
-    return monthsDifference > 0 ? monthsDifference : 0;
+    const contractEnd = contractStart.add(fidelity, "month");
+    console.log("-----------------------");
+
+    const cancelDate = getCancelDate();
+    const referenceDate = dayjs(cancelDate);
+
+    console.log("Data início:", contractStart.format("DD/MM/YYYY"));
+    console.log("Data fim:", contractEnd.format("DD/MM/YYYY"));
+    console.log("Data referência (cancelamento):", referenceDate.format("DD/MM/YYYY"));
+
+    if (contractEnd.isBefore(referenceDate) || contractEnd.isSame(referenceDate)) {
+      return { months: 0, days: 0, totalMonths: 0, display: "N/A" };
+    }
+
+    const diffInMonths = contractEnd.diff(referenceDate, "month");
+    const remainingAfterMonths = referenceDate.add(diffInMonths, "month");
+    const diffInDays = contractEnd.diff(remainingAfterMonths, "day");
+
+    const daysInTargetMonth = contractEnd.daysInMonth();
+    console.log("Dias no mês de destino:", daysInTargetMonth);
+    const totalMonthsDecimal = diffInMonths + diffInDays / daysInTargetMonth;
+
+    console.log(`Restam: ${diffInMonths} meses e ${diffInDays} dias`);
+    console.log(`Decimal para multa: ${totalMonthsDecimal.toFixed(4)}`);
+
+    let display = "";
+    if (diffInMonths > 0 && diffInDays > 0) {
+      display = `${diffInMonths} ${diffInMonths === 1 ? "mês" : "meses"} e ${diffInDays} ${diffInDays === 1 ? "dia" : "dias"}`;
+    } else if (diffInMonths > 0) {
+      display = `${diffInMonths} ${diffInMonths === 1 ? "mês" : "meses"}`;
+    } else if (diffInDays > 0) {
+      display = `${diffInDays} ${diffInDays === 1 ? "dia" : "dias"}`;
+    } else {
+      display = "N/A";
+    }
+
+    return {
+      months: diffInMonths,
+      days: diffInDays,
+      totalMonths: totalMonthsDecimal,
+      display: display,
+    };
   };
 
   const getCancelDate = () => {
@@ -34,8 +78,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
       const nextMonth = new Date(cancelDate.getFullYear(), cancelDate.getMonth() + 1, cancelDate.getDate());
       cancelDate = nextMonth;
     }
-
-    return cancelDate.toLocaleDateString("pt-BR");
+    return cancelDate;
   };
 
   const handleCheckboxChange = (e, item) => {
@@ -52,6 +95,52 @@ const ContractItems = ({ contractItems, contract, loading }) => {
 
   const closeModal = () => {
     setShowModal(false);
+    setQuantities({});
+    setPercentages({});
+    setFees({});
+  };
+
+  const handleQuantityChange = (itemId, value) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [itemId]: parseInt(value) || 0,
+    }));
+  };
+
+  const handlePercentageChange = (itemId, value) => {
+    setPercentages((prev) => ({
+      ...prev,
+      [itemId]: parseFloat(value) || 0,
+    }));
+  };
+
+  const handleFeeChange = (itemId, value) => {
+    setFees((prev) => ({
+      ...prev,
+      [itemId]: parseFloat(value) || 0,
+    }));
+  };
+
+  const calculateNetValue = (item, itemId) => {
+    const quantity = quantities[itemId] || item.Quantity;
+    return quantity * item.UnitPrice;
+  };
+
+  const calculateFine = (item, itemId, monthsLeftData) => {
+    const netValue = calculateNetValue(item, itemId);
+    const percentage = percentages[itemId] || 50;
+    const totalMonthsDecimal = monthsLeftData.totalMonths;
+    return totalMonthsDecimal * netValue * (percentage / 100);
+  };
+
+  const calculateTotal = (item, itemId, monthsLeftData) => {
+    const fine = calculateFine(item, itemId, monthsLeftData);
+    const fee = fees[itemId] || 0;
+    const quantity = quantities[itemId] || item.Quantity;
+
+    const totalFee = fee * quantity;
+
+    return fine + totalFee;
   };
 
   return (
@@ -112,40 +201,83 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                     <strong>Data do Contrato:</strong> {contract.DocumentDateToGrid.split(" ")[0]}
                   </p>
                   <p>
-                    <strong>Data da Solicitação:</strong> {new Date().toLocaleDateString("pt-BR")} <strong>Data de Encerramento:</strong> {getCancelDate()}{" "}
+                    <strong>Data da Solicitação:</strong> {new Date().toLocaleDateString("pt-BR")} <strong>Data de Encerramento:</strong>{" "}
+                    {getCancelDate().toLocaleDateString("pt-BR")}{" "}
                   </p>
 
                   {selectedContractItems.length > 0 && (
-                    <div className="table-responsive">
+                    <div className="">
                       <table className="table table-sm table-bordered table-hover">
                         <thead>
                           <tr>
                             <th>Itens do Contrato</th>
                             <th>QNT</th>
                             <th>Pr. Unit.</th>
-                            <th>Val. Líquido</th>
-                            <th>Fidelidade</th>
-                            <th>Restante</th>
+                            <th>Fidelidade Restante</th>
+                            <th>%</th>
+                            <th>Multa</th>
+                            <th>Taxa</th>
+                            <th>Total</th>
                           </tr>
                         </thead>
                         <tbody>
                           {selectedContractItems.map((item, index) => {
+                            const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
                             const itemFidelityValue = parseInt(getItemFidelity(item));
-                            const itemMonthsLeft = itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : 0;
+                            const itemMonthsLeft =
+                              itemFidelityValue > 0
+                                ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid)
+                                : { months: 0, days: 0, totalMonths: 0, display: "N/A" };
 
                             return (
-                              <tr key={index}>
+                              <tr key={itemId}>
                                 <td>
                                   <div className="row ps-3">{item.QbmItemCode}:</div>
-                                  <div className="row ps-3">{item.QbmItemDescription}</div>
+                                  <div className="row ps-3" style={{ fontSize: "0.8rem", maxWidth: "400px" }}>
+                                    {item.QbmItemDescription}
+                                  </div>
                                 </td>
-                                <td style={{ width: "10px" }}>{item.Quantity}</td>
+                                <td style={{ width: "10px" }}>
+                                  <input
+                                    className="form-control form-control-sm"
+                                    type="number"
+                                    value={quantities[itemId] || item.Quantity}
+                                    onChange={(e) => handleQuantityChange(itemId, e.target.value)}
+                                    min="0"
+                                    style={{ width: "60px" }}
+                                  />
+                                </td>
                                 <td style={{ width: "100px" }}>
                                   {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.UnitPrice)}
                                 </td>
-                                <td>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.NetValue)}</td>
-                                <td>{itemFidelityValue > 0 ? `${itemFidelityValue} meses` : "N/A"}</td>
-                                <td>{itemMonthsLeft > 0 ? `${itemMonthsLeft} meses` : "N/A"}</td>
+                                <td>{itemMonthsLeft.display}</td>
+                                <td>
+                                  <input
+                                    className="form-control form-control-sm"
+                                    type="number"
+                                    value={percentages[itemId] || 50}
+                                    onChange={(e) => handlePercentageChange(itemId, e.target.value)}
+                                    min="0"
+                                    max="100"
+                                    style={{ width: "60px" }}
+                                  />
+                                </td>
+                                <td>
+                                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(calculateFine(item, itemId, itemMonthsLeft))}
+                                </td>
+                                <td>
+                                  <select
+                                    className="form-select form-select-sm"
+                                    value={fees[itemId] || 0}
+                                    onChange={(e) => handleFeeChange(itemId, e.target.value)}>
+                                    <option value={0}>R$ 0,00</option>
+                                    <option value={300}>R$ 300,00</option>
+                                    <option value={500}>R$ 500,00</option>
+                                  </select>
+                                </td>
+                                <td>
+                                  {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(calculateTotal(item, itemId, itemMonthsLeft))}
+                                </td>
                               </tr>
                             );
                           })}
@@ -161,7 +293,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                     Cancelar
                   </button>
                   <button type="button" className="btn btn-sm btn-qorange" disabled={selectedContractItems.length === 0}>
-                    Gerar Memorial
+                    Próximo
                   </button>
                 </div>
               </div>
