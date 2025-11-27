@@ -91,3 +91,11 @@ input[type="number"] {
 .modal-xl {
   max-width: 1400px !important;
 }
+
+.bg-qorange {
+  background-color: var(--primary);
+}
+
+.text-qorange {
+  color: var(--primary);
+}

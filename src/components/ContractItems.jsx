@@ -1,9 +1,12 @@
 import { useState } from "react";
 import dayjs from "dayjs";
+import DeviceSelectionModal from "./DeviceSelectionModal";
 
 const ContractItems = ({ contractItems, contract, loading }) => {
   const [selectedContractItems, setSelectedContractItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showDeviceModal, setShowDeviceModal] = useState(false);
+  const [calculatedData, setCalculatedData] = useState([]);
   const [quantities, setQuantities] = useState({});
   const [percentages, setPercentages] = useState({});
   const [fees, setFees] = useState({});
@@ -21,7 +24,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   };
 
   const getMonthsLeft = (fidelity, contractDate) => {
-    if (fidelity === 0) return { months: 0, days: 0, totalMonths: 0, display: "N/A" };
+    if (fidelity === 0) return { totalMonths: 0, display: "N/A" };
 
     const datePart = contractDate.split(" ")[0]; // Isso aqui ta sendo feito pq o contractDate vem com hora junto
     const [day, month, year] = datePart.split("/");
@@ -38,35 +41,27 @@ const ContractItems = ({ contractItems, contract, loading }) => {
     console.log("Data referência (cancelamento):", referenceDate.format("DD/MM/YYYY"));
 
     if (contractEnd.isBefore(referenceDate) || contractEnd.isSame(referenceDate)) {
-      return { months: 0, days: 0, totalMonths: 0, display: "N/A" };
+      return { totalMonths: 0, display: "N/A" };
     }
 
     const diffInMonths = contractEnd.diff(referenceDate, "month");
     const remainingAfterMonths = referenceDate.add(diffInMonths, "month");
     const diffInDays = contractEnd.diff(remainingAfterMonths, "day");
 
-    const daysInTargetMonth = contractEnd.daysInMonth();
-    console.log("Dias no mês de destino:", daysInTargetMonth);
-    const totalMonthsDecimal = diffInMonths + diffInDays / daysInTargetMonth;
+    const totalMonths = diffInDays > 0 ? diffInMonths + 1 : diffInMonths;
 
     console.log(`Restam: ${diffInMonths} meses e ${diffInDays} dias`);
-    console.log(`Decimal para multa: ${totalMonthsDecimal.toFixed(4)}`);
+    console.log(`Meses para cálculo da multa: ${totalMonths}`);
 
     let display = "";
-    if (diffInMonths > 0 && diffInDays > 0) {
-      display = `${diffInMonths} ${diffInMonths === 1 ? "mês" : "meses"} e ${diffInDays} ${diffInDays === 1 ? "dia" : "dias"}`;
-    } else if (diffInMonths > 0) {
-      display = `${diffInMonths} ${diffInMonths === 1 ? "mês" : "meses"}`;
-    } else if (diffInDays > 0) {
-      display = `${diffInDays} ${diffInDays === 1 ? "dia" : "dias"}`;
+    if (totalMonths > 0) {
+      display = `${totalMonths} ${totalMonths === 1 ? "mês" : "meses"}`;
     } else {
       display = "N/A";
     }
 
     return {
-      months: diffInMonths,
-      days: diffInDays,
-      totalMonths: totalMonthsDecimal,
+      totalMonths: totalMonths,
       display: display,
     };
   };
@@ -98,6 +93,54 @@ const ContractItems = ({ contractItems, contract, loading }) => {
     setQuantities({});
     setPercentages({});
     setFees({});
+  };
+
+  const handleNext = () => {
+    const calculatedData = selectedContractItems.map((item) => {
+      const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
+      const itemFidelityValue = parseInt(getItemFidelity(item));
+      const itemMonthsLeft = itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : { totalMonths: 0, display: "N/A" };
+
+      const quantity = quantities[itemId] || item.Quantity;
+      const percentage = percentages[itemId] || 50;
+      const fee = fees[itemId] || 0;
+      const fine = calculateFine(item, itemId, itemMonthsLeft);
+      const total = calculateTotal(item, itemId, itemMonthsLeft);
+
+      return {
+        ...item,
+        itemId,
+        quantity,
+        percentage,
+        fee,
+        fine,
+        total,
+        fidelityDisplay: itemMonthsLeft.display,
+        finePerUnit: fine / quantity,
+      };
+    });
+
+    setCalculatedData(calculatedData);
+    setShowModal(false);
+    setShowDeviceModal(true);
+  };
+
+  const handleDeviceModalClose = () => {
+    setShowDeviceModal(false);
+    setShowModal(true);
+  };
+
+  const handleDeviceConfirm = (data) => {
+    console.log("Dados do memorial:", {
+      selectedDevices: data.selectedDevices,
+      contractItems: selectedContractItems,
+      quantities,
+      percentages,
+      fees,
+    });
+    alert("Memorial gerado com sucesso!");
+    setShowDeviceModal(false);
+    closeModal();
   };
 
   const handleQuantityChange = (itemId, value) => {
@@ -214,21 +257,18 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                             <th>QNT</th>
                             <th>Pr. Unit.</th>
                             <th>Fidelidade Restante</th>
-                            <th>%</th>
+                            <th>Multa Contratual (%)</th>
                             <th>Multa</th>
-                            <th>Taxa</th>
+                            <th>Taxa de Finalização</th>
                             <th>Total</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {selectedContractItems.map((item, index) => {
+                          {selectedContractItems.map((item) => {
                             const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
                             const itemFidelityValue = parseInt(getItemFidelity(item));
                             const itemMonthsLeft =
-                              itemFidelityValue > 0
-                                ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid)
-                                : { months: 0, days: 0, totalMonths: 0, display: "N/A" };
-
+                              itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : { totalMonths: 0, display: "N/A" };
                             return (
                               <tr key={itemId}>
                                 <td>
@@ -292,7 +332,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                   <button type="button" className="btn btn-sm btn-secondary" onClick={closeModal}>
                     Cancelar
                   </button>
-                  <button type="button" className="btn btn-sm btn-qorange" disabled={selectedContractItems.length === 0}>
+                  <button type="button" className="btn btn-sm btn-qorange" disabled={selectedContractItems.length === 0} onClick={handleNext}>
                     Próximo
                   </button>
                 </div>
@@ -301,6 +341,15 @@ const ContractItems = ({ contractItems, contract, loading }) => {
           </div>
         </>
       )}
+
+      <DeviceSelectionModal
+        show={showDeviceModal}
+        onClose={handleDeviceModalClose}
+        calculatedData={calculatedData}
+        contract={contract}
+        getCancelDate={getCancelDate}
+        onConfirm={handleDeviceConfirm}
+      />
     </div>
   );
 };
