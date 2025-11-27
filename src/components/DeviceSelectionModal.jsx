@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCancelDate, onConfirm }) => {
+const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCancelDate }) => {
   const [selectedDevices, setSelectedDevices] = useState({});
 
   useEffect(() => {
@@ -39,7 +39,7 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
       return;
     }
 
-    onConfirm({ selectedDevices });
+    alert("Memorial de cobrança gerado com sucesso!");
   };
 
   const handleClose = () => {
@@ -198,7 +198,7 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
                 Voltar
               </button>
               <button type="button" className="btn btn-sm btn-qorange" onClick={handleConfirm}>
-                Finalizar Memorial
+                Gerar Memorial
               </button>
             </div>
           </div>

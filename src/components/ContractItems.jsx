@@ -130,19 +130,6 @@ const ContractItems = ({ contractItems, contract, loading }) => {
     setShowModal(true);
   };
 
-  const handleDeviceConfirm = (data) => {
-    console.log("Dados do memorial:", {
-      selectedDevices: data.selectedDevices,
-      contractItems: selectedContractItems,
-      quantities,
-      percentages,
-      fees,
-    });
-    alert("Memorial gerado com sucesso!");
-    setShowDeviceModal(false);
-    closeModal();
-  };
-
   const handleQuantityChange = (itemId, value) => {
     setQuantities((prev) => ({
       ...prev,
@@ -348,7 +335,6 @@ const ContractItems = ({ contractItems, contract, loading }) => {
         calculatedData={calculatedData}
         contract={contract}
         getCancelDate={getCancelDate}
-        onConfirm={handleDeviceConfirm}
       />
     </div>
   );
