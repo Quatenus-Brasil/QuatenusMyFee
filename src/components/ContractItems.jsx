@@ -159,8 +159,8 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   const calculateFine = (item, itemId, monthsLeftData) => {
     const netValue = calculateNetValue(item, itemId);
     const percentage = percentages[itemId] || 50;
-    const totalMonthsDecimal = monthsLeftData.totalMonths;
-    return totalMonthsDecimal * netValue * (percentage / 100);
+    const totalMonths = monthsLeftData.totalMonths;
+    return totalMonths * netValue * (percentage / 100);
   };
 
   const calculateTotal = (item, itemId, monthsLeftData) => {
