@@ -83,13 +83,14 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
       pdf.setFont("helvetica", "bold");
       let yPosition = 30;
 
-      pdf.text(`Informações do Contrato: ${contract.QbmDocumentId}`, margin, yPosition);
+      pdf.text(`N° Contrato: ${contract.QbmDocumentId}`, margin, yPosition);
       yPosition += 5;
 
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
 
-      yPosition += 5;
+      pdf.text(`Cliente: ${contract.CustomerBusinessEntityDescription}`, margin, yPosition);
+      yPosition +=10;
 
       pdf.setFont("helvetica", "bold");
       pdf.text("Data do Contrato:", margin, yPosition);
