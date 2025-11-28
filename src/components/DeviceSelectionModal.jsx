@@ -1,7 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import Logo from "../assets/LogoQuatenus.png";
 
 const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCancelDate }) => {
   const [selectedDevices, setSelectedDevices] = useState({});
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const modalContentRef = useRef();
 
   useEffect(() => {
     if (show && calculatedData.length > 0) {
@@ -28,7 +33,7 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
     });
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const allValid = calculatedData.every((item) => {
       const selections = selectedDevices[item.itemId] || [];
       return selections.length === item.quantity && selections.every((selection) => selection.trim() !== "");
@@ -39,7 +44,209 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
       return;
     }
 
-    alert("Memorial de cobrança gerado com sucesso!");
+    await generatePDF();
+  };
+
+  const generatePDF = async () => {
+    setIsGeneratingPDF(true);
+
+    try {
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = 210;
+      const margin = 15;
+
+      const addHeader = () => {
+        const logoWidth = 32; // largura da logo em mm
+        const logoHeight = 10; // altura da logo em mm
+        pdf.addImage(Logo, "PNG", pageWidth - margin - logoWidth, 8, logoWidth, logoHeight);
+
+        pdf.setFontSize(16);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0, 0, 0);
+        pdf.text("MEMORIAL DE CANCELAMENTO", margin, 15);
+
+        pdf.setDrawColor(220, 220, 220);
+        pdf.setLineWidth(0.2);
+        pdf.line(margin, 22, pageWidth - margin, 22);
+
+        pdf.setTextColor(0, 0, 0);
+      };
+
+      addHeader();
+
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      let yPosition = 30;
+
+      pdf.text(`Informações do Contrato: ${contract.QbmDocumentId}`, margin, yPosition);
+      yPosition += 5;
+
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+
+      yPosition += 5;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Data do Contrato:", margin, yPosition);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(contract.DocumentDateToGrid.split(" ")[0], margin, yPosition + 5);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Data da Solicitação:", margin + 60, yPosition);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(new Date().toLocaleDateString("pt-BR"), margin + 60, yPosition + 5);
+
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Data de Encerramento:", margin + 120, yPosition);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(getCancelDate().toLocaleDateString("pt-BR"), margin + 120, yPosition + 5);
+
+      yPosition += 15;
+
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Detalhamento das Licenças a Cancelar:", margin, yPosition);
+      yPosition += 5;
+
+      calculatedData.forEach((item, index) => {
+        const rectStartY = yPosition;
+
+        yPosition += 5;
+
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`${item.QbmItemCode}`, margin + 3, yPosition);
+        yPosition += 5;
+
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(108, 117, 125);
+
+        const maxWidth = pageWidth - margin * 2 - 10;
+        const descriptionLines = pdf.splitTextToSize(item.QbmItemDescription, maxWidth);
+
+        descriptionLines.forEach((line, lineIndex) => {
+          pdf.text(line, margin + 3, yPosition + lineIndex * 4);
+        });
+
+        const actualDescriptionHeight = descriptionLines.length * 4;
+        yPosition += actualDescriptionHeight + 2;
+
+        pdf.setTextColor(255, 107, 53);
+        pdf.text(`Quantidade a cancelar: ${item.quantity}`, margin + 3, yPosition);
+        yPosition += 4;
+
+        pdf.setTextColor(0, 0, 0); 
+        pdf.setFontSize(8);
+        pdf.text(`Fidelidade Restante: ${item.fidelityDisplay}`, margin + 3, yPosition);
+        yPosition += 5;
+
+        const totalRectHeight = yPosition - rectStartY;
+        pdf.setFillColor(248, 249, 250);
+        pdf.rect(margin, rectStartY, pageWidth - margin * 2, totalRectHeight, "F");
+
+        let contentY = rectStartY + 5;
+
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(`${item.QbmItemCode}`, margin + 3, contentY);
+        contentY += 5;
+
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(108, 117, 125);
+        descriptionLines.forEach((line, lineIndex) => {
+          pdf.text(line, margin + 3, contentY + lineIndex * 4);
+        });
+        contentY += actualDescriptionHeight + 2;
+
+        pdf.setTextColor(255, 107, 53);
+        pdf.text(`Quantidade a cancelar: ${item.quantity}`, margin + 3, contentY);
+        contentY += 4;
+
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(8);
+        pdf.text(`Fidelidade Restante: ${item.fidelityDisplay}`, margin + 3, contentY);
+
+        pdf.setTextColor(0, 0, 0);
+        yPosition += 3;
+
+        const tableData = [];
+        const deviceSelections = selectedDevices[item.itemId] || [];
+
+        for (let i = 0; i < item.quantity; i++) {
+          tableData.push([
+            new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.UnitPrice),
+            `${item.percentage}%`,
+            new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.finePerUnit),
+            new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.fee),
+            deviceSelections[i] || "N/A",
+          ]);
+        }
+
+        autoTable(pdf, {
+          startY: yPosition,
+          head: [["Pr. Unitário", "Multa Contratual (%)", "Multa", "Taxa de Finalização", "Placa do Veículo"]],
+          body: tableData,
+          theme: "grid",
+          styles: {
+            fontSize: 9,
+            cellPadding: 2,
+          },
+          headStyles: {
+            fillColor: "#f36e21",
+            textColor: 255,
+            fontStyle: "bold",
+          },
+          margin: { left: margin, right: margin },
+          pageBreak: "auto",
+          showHead: "everyPage",
+        });
+
+        yPosition = pdf.lastAutoTable.finalY + 15;
+
+        if (index < calculatedData.length - 1 && yPosition > 240) {
+          pdf.addPage();
+          yPosition = 25;
+        }
+      });
+
+      const total = calculatedData.reduce((acc, item) => acc + item.total, 0);
+
+      if (yPosition > 260) {
+        pdf.addPage();
+        yPosition = 25;
+      }
+
+      pdf.setFillColor("#f36e21");
+      pdf.rect(margin, yPosition, pageWidth - margin * 2, 15, "F");
+
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(`TOTAL: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(total)}`, pageWidth / 2, yPosition + 10, {
+        align: "center",
+      });
+
+      pdf.setTextColor(0, 0, 0);
+
+      const now = new Date();
+      const timestamp = now.toLocaleDateString("pt-BR").replace(/\//g, "-") + "_" + now.toLocaleTimeString("pt-BR").replace(/:/g, "-");
+      const fileName = `Memorial_Cancelamento_${contract.QbmDocumentId}_${timestamp}.pdf`;
+
+      pdf.save(fileName);
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      alert("Erro ao gerar o PDF. Tente novamente.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   const handleClose = () => {
@@ -54,10 +261,9 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
   return (
     <>
       <div className="modal-backdrop fade show"></div>
-
       <div className="modal fade show d-block" tabIndex="-1">
         <div className="modal-dialog modal-xl">
-          <div className="modal-content">
+          <div className="modal-content" ref={modalContentRef}>
             <div className="modal-header">
               <h5 className="modal-title">Memorial de Cobrança - Contrato: {contract.QbmDocumentId}</h5>
               <button type="button" className="btn-close" onClick={handleClose}></button>
@@ -197,8 +403,15 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
               <button type="button" className="btn btn-sm btn-secondary" onClick={handleClose}>
                 Voltar
               </button>
-              <button type="button" className="btn btn-sm btn-qorange" onClick={handleConfirm}>
-                Gerar Memorial
+              <button type="button" className="btn btn-sm btn-qorange" onClick={handleConfirm} disabled={isGeneratingPDF}>
+                {isGeneratingPDF ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Gerando PDF...
+                  </>
+                ) : (
+                  "Gerar Memorial"
+                )}
               </button>
             </div>
           </div>
