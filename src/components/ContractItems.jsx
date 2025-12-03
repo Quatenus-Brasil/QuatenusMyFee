@@ -10,6 +10,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   const [quantities, setQuantities] = useState({});
   const [percentages, setPercentages] = useState({});
   const [fees, setFees] = useState({});
+  const [chipFidelities, setChipFidelities] = useState({});
 
   const getItemFidelity = (item) => {
     const description = item.QbmItemDescription || "";
@@ -93,13 +94,26 @@ const ContractItems = ({ contractItems, contract, loading }) => {
     setQuantities({});
     setPercentages({});
     setFees({});
+    setChipFidelities({});
   };
 
   const handleNext = () => {
     const calculatedData = selectedContractItems.map((item) => {
       const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
-      const itemFidelityValue = parseInt(getItemFidelity(item));
-      const itemMonthsLeft = itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : { totalMonths: 0, display: "N/A" };
+      
+      let itemMonthsLeft;
+      if (item.QbmItemCode.includes("CHIP")) {
+        const chipFidelity = chipFidelities[itemId];
+        itemMonthsLeft = chipFidelity ? {
+          totalMonths: chipFidelity,
+          display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`
+        } : { totalMonths: 0, display: "N/A" };
+      } else {
+        const itemFidelityValue = parseInt(getItemFidelity(item));
+        itemMonthsLeft = itemFidelityValue > 0 ? 
+          getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : 
+          { totalMonths: 0, display: "N/A" };
+      }
 
       const quantity = quantities[itemId] || item.Quantity;
       const percentage = percentages[itemId] || 50;
@@ -151,6 +165,34 @@ const ContractItems = ({ contractItems, contract, loading }) => {
     }));
   };
 
+  const handleChipFidelityChange = (itemId, value) => {
+    setChipFidelities((prev) => ({
+      ...prev,
+      [itemId]: parseInt(value) || 0,
+    }));
+  };
+
+  const getAvailableFidelities = () => {
+    const fidelities = new Set();
+    
+    selectedContractItems.forEach((item) => {
+      if (!item.QbmItemCode.includes("CHIP")) {
+        const itemFidelityValue = parseInt(getItemFidelity(item));
+        if (itemFidelityValue > 0) {
+          const itemMonthsLeft = getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid);
+          if (itemMonthsLeft.totalMonths > 0) {
+            fidelities.add(JSON.stringify({
+              value: itemMonthsLeft.totalMonths,
+              display: itemMonthsLeft.display
+            }));
+          }
+        }
+      }
+    });
+
+    return Array.from(fidelities).map(f => JSON.parse(f));
+  };
+
   const calculateNetValue = (item, itemId) => {
     const quantity = quantities[itemId] || item.Quantity;
     return quantity * item.UnitPrice;
@@ -182,6 +224,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
             <th>Itens do Contrato</th>
             <th>QNT</th>
             <th>Pr. Unit.</th>
+            <th>Desconto</th>
             <th>Val. Líquido</th>
             <th></th>
           </tr>
@@ -202,6 +245,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                 </td>
                 <td style={{ width: "10px" }}>{item.Quantity}</td>
                 <td style={{ width: "100px" }}>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.UnitPrice)}</td>
+                <td style={{ width: "10px" }}>{item.Discount}%</td>
                 <td>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.NetValue)}</td>
                 <td style={{ width: "5px" }}>
                   <input type="checkbox" name={`checkbox-${index}`} id={`checkbox-${index}`} onChange={(e) => handleCheckboxChange(e, item)} />
@@ -253,9 +297,20 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                         <tbody>
                           {selectedContractItems.map((item) => {
                             const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
-                            const itemFidelityValue = parseInt(getItemFidelity(item));
-                            const itemMonthsLeft =
-                              itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : { totalMonths: 0, display: "N/A" };
+                            
+                            let itemMonthsLeft;
+                            if (item.QbmItemCode.includes("CHIP")) {
+                              const chipFidelity = chipFidelities[itemId];
+                              itemMonthsLeft = chipFidelity ? {
+                                totalMonths: chipFidelity,
+                                display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`
+                              } : { totalMonths: 0, display: "N/A" };
+                            } else {
+                              const itemFidelityValue = parseInt(getItemFidelity(item));
+                              itemMonthsLeft = itemFidelityValue > 0 ? 
+                                getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : 
+                                { totalMonths: 0, display: "N/A" };
+                            }
                             return (
                               <tr key={itemId}>
                                 <td>
@@ -277,7 +332,23 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                                 <td style={{ width: "100px" }}>
                                   {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.UnitPrice)}
                                 </td>
-                                <td>{itemMonthsLeft.display}</td>
+                                <td>
+                                  {item.QbmItemCode.includes("CHIP") ? (
+                                    <select
+                                      className="form-select form-select-sm"
+                                      value={chipFidelities[itemId] || ""}
+                                      onChange={(e) => handleChipFidelityChange(itemId, e.target.value)}>
+                                      <option value="N/A">N/A</option>
+                                      {getAvailableFidelities().map((fidelity) => (
+                                        <option key={fidelity.value} value={fidelity.value}>
+                                          {fidelity.display}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  ) : (
+                                    itemMonthsLeft.display
+                                  )}
+                                </td>
                                 <td>
                                   <input
                                     className="form-control form-control-sm"
