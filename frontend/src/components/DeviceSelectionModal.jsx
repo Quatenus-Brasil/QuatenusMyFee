@@ -90,7 +90,7 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
       pdf.setFont("helvetica", "normal");
 
       pdf.text(`Cliente: ${contract.CustomerBusinessEntityDescription}`, margin, yPosition);
-      yPosition +=10;
+      yPosition += 10;
 
       pdf.setFont("helvetica", "bold");
       pdf.text("Data do Contrato:", margin, yPosition);
@@ -117,65 +117,30 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
       calculatedData.forEach((item, index) => {
         const rectStartY = yPosition;
 
+        const contentHeight = 5 + 5 + 4 + 5; // espaçamento + título + quantidade + fidelidade
+
+        // Desenha o retângulo de fundo
+        pdf.setFillColor(248, 249, 250);
+        pdf.rect(margin, rectStartY, pageWidth - margin * 2, contentHeight, "F");
+
         yPosition += 5;
 
+        // Conteudo
         pdf.setFontSize(12);
         pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0, 0, 0);
         pdf.text(`${item.QbmItemCode}`, margin + 3, yPosition);
         yPosition += 5;
 
-        pdf.setFontSize(9);
+        pdf.setFontSize(10);
         pdf.setFont("helvetica", "normal");
-        pdf.setTextColor(108, 117, 125);
-
-        const maxWidth = pageWidth - margin * 2 - 10;
-        const descriptionLines = pdf.splitTextToSize(item.QbmItemDescription, maxWidth);
-
-        descriptionLines.forEach((line, lineIndex) => {
-          pdf.text(line, margin + 3, yPosition + lineIndex * 4);
-        });
-
-        const actualDescriptionHeight = descriptionLines.length * 4;
-        yPosition += actualDescriptionHeight + 2;
-
         pdf.setTextColor(255, 107, 53);
         pdf.text(`Quantidade a cancelar: ${item.quantity}`, margin + 3, yPosition);
         yPosition += 4;
 
-        pdf.setTextColor(0, 0, 0); 
-        pdf.setFontSize(8);
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFontSize(10);
         pdf.text(`Fidelidade Restante: ${item.fidelityDisplay}`, margin + 3, yPosition);
-        yPosition += 5;
-
-        const totalRectHeight = yPosition - rectStartY;
-        pdf.setFillColor(248, 249, 250);
-        pdf.rect(margin, rectStartY, pageWidth - margin * 2, totalRectHeight, "F");
-
-        let contentY = rectStartY + 5;
-
-        pdf.setFontSize(12);
-        pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(0, 0, 0);
-        pdf.text(`${item.QbmItemCode}`, margin + 3, contentY);
-        contentY += 5;
-
-        pdf.setFontSize(9);
-        pdf.setFont("helvetica", "normal");
-        pdf.setTextColor(108, 117, 125);
-        descriptionLines.forEach((line, lineIndex) => {
-          pdf.text(line, margin + 3, contentY + lineIndex * 4);
-        });
-        contentY += actualDescriptionHeight + 2;
-
-        pdf.setTextColor(255, 107, 53);
-        pdf.text(`Quantidade a cancelar: ${item.quantity}`, margin + 3, contentY);
-        contentY += 4;
-
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFontSize(8);
-        pdf.text(`Fidelidade Restante: ${item.fidelityDisplay}`, margin + 3, contentY);
-
-        pdf.setTextColor(0, 0, 0);
         yPosition += 3;
 
         const tableData = [];
