@@ -22,7 +22,7 @@ const ContractAccodion = ({ contract }) => {
     };
 
     try {
-      const response = await axios.post("/api/quatenus10/QBMDats/Documents/Document.svc/GetExternalContractsItems", body);
+      const response = await axios.post("http://10.3.0.240:5556/api/getExternalContractItems", body);
       setContractItems(response.data.Rows);
     } catch (error) {
       console.error(error);

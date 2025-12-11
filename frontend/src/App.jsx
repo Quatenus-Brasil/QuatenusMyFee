@@ -43,7 +43,7 @@ function App() {
     };
 
     try {
-      const response = await axios.post("/api/quatenus10/QBMDats/Documents/Document.svc/json/GetDocuments", body);
+      const response = await axios.post("http://10.3.0.240:5556/api/getDocuments", body);
       setContracts(response.data.d.Rows);
     } catch (error) {
       console.error(error);
