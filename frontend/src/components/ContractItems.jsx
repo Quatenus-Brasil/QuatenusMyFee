@@ -117,7 +117,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
 
       const quantity = quantities[itemId] || item.Quantity;
       const percentage = percentages[itemId] || 50;
-      const fee = fees[itemId] || 0;
+      const fee = fees[itemId] ?? 300;
       const fine = calculateFine(item, itemId, itemMonthsLeft);
       const total = calculateTotal(item, itemId, itemMonthsLeft);
 
@@ -207,7 +207,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
 
   const calculateTotal = (item, itemId, monthsLeftData) => {
     const fine = calculateFine(item, itemId, monthsLeftData);
-    const fee = fees[itemId] || 0;
+    const fee = fees[itemId] ?? 300;
     const quantity = quantities[itemId] || item.Quantity;
 
     const totalFee = fee * quantity;
@@ -366,7 +366,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                                 <td>
                                   <select
                                     className="form-select form-select-sm"
-                                    value={fees[itemId] || 0}
+                                    value={fees[itemId] ?? 300}
                                     onChange={(e) => handleFeeChange(itemId, e.target.value)}>
                                     <option value={0}>R$ 0,00</option>
                                     <option value={300}>R$ 300,00</option>
