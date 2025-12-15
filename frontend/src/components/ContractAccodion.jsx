@@ -62,7 +62,7 @@ const ContractAccodion = ({ contract }) => {
                   <strong>CNPJ:</strong> {`${contract.CustomerBusinessEntityNationalTaxNumber || "N/A"}`}
                 </p>
                 <p className="mb-2">
-                  <strong>Vendedor(a):</strong> {`${contract.AccountUserDescription.split("-")[0] || "N/A"}`}
+                  <strong>Vendedor(a):</strong> {`${contract.AccountUserDescription ? contract.AccountUserDescription.split("-")[0] : "N/A"}`}
                 </p>
                 <div className="vr position-absolute top-0 end-0" style={{ height: "95%" }}></div>
               </div>
