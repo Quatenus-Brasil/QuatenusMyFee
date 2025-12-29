@@ -5,7 +5,7 @@ O Quatenus MyFee é uma ferramenta interna da Quatenus Brasil, usada para simpli
 ## Screenshots
 
 Página inicial:
-![Screenshot](https://i.imgur.com/SY7z1To.png)
+![Screenshot](https://i.imgur.com/w6jZZM2.png)
 
 ## Stack utilizada
 
