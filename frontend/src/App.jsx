@@ -8,6 +8,7 @@ import axios from "axios";
 function App() {
   const [count, setCount] = useState(0);
   const [search, setSearch] = useState("");
+  const [state, setState] = useState("0,14,1,2,3");
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -26,6 +27,7 @@ function App() {
       alert("Por favor, insira um termo na pesquisa.");
       return;
     }
+    console.log("Estado:", state);
     setContracts([]);
     setLoading(true);
     const body = {
@@ -36,7 +38,7 @@ function App() {
       rowsPerPage: "999",
       specialArgs: `{"Data":[{"Key":"startDate","Value":"2011/07/01"},{"Key":"finishDate","Value":"${
         new Date().toISOString().split("T")[0]
-      }"},{"Key":"DocType","Value":"Contract"}]}`,
+      }"},{"Key":"DocType","Value":"Contract"}, {"Key":"specialFilter","Value":"${state}"}]}`,
       timeZoneId: "E. South America Standard Time",
       userName: localStorage.getItem("qbmUsername"),
       password: localStorage.getItem("qbmPassword"),
@@ -44,6 +46,7 @@ function App() {
 
     try {
       const response = await axios.post("http://10.3.0.240:5556/api/getDocuments", body);
+      console.log(response);
       setContracts(response.data.d.Rows);
     } catch (error) {
       console.error(error);
@@ -63,7 +66,7 @@ function App() {
       </div>
 
       <div>
-        <Searchbar search={search} setSearch={setSearch} handleSearch={handleSearch} loading={loading} />
+        <Searchbar search={search} setSearch={setSearch} setState={setState} handleSearch={handleSearch} loading={loading} />
       </div>
 
       <hr />
