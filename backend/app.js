@@ -15,6 +15,16 @@ app.use(
   })
 );
 
+app.post("/api/getDocuments", async (request, response) => {
+  try {
+    const resData = await axios.post(`${process.env.QUATENUS_API_BASE_URL}/json/GetDocuments`, request.body);
+    response.json(resData.data);
+  } catch (error) {
+    console.error("Erro (GetDocuments):", error.message);
+    response.status(500).json({ error: "Erro ao consultar a API da Quatenus" });
+  }
+});
+
 app.post("/api/getExternalContractItems", async (request, response) => {
   try {
     const resData = await axios.post(`${process.env.QUATENUS_API_BASE_URL}/GetExternalContractsItems`, request.body);
@@ -25,12 +35,12 @@ app.post("/api/getExternalContractItems", async (request, response) => {
   }
 });
 
-app.post("/api/getDocuments", async (request, response) => {
+app.post("/api/GetExternalContractsItemsDevices", async (request, response) => {
   try {
-    const resData = await axios.post(`${process.env.QUATENUS_API_BASE_URL}/json/GetDocuments`, request.body);
+    const resData = await axios.post(`${process.env.QUATENUS_API_BASE_URL}/GetExternalContractsItemsDevices`, request.body);
     response.json(resData.data);
   } catch (error) {
-    console.error("Erro (GetDocuments):", error.message);
+    console.error("Erro (GetExternalContractsItemsDevices):", error.message);
     response.status(500).json({ error: "Erro ao consultar a API da Quatenus" });
   }
 });

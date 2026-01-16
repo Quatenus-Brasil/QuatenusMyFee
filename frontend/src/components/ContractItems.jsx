@@ -32,14 +32,14 @@ const ContractItems = ({ contractItems, contract, loading }) => {
     const contractStart = dayjs(`${year}-${month}-${day}`);
 
     const contractEnd = contractStart.add(fidelity, "month");
-    console.log("-----------------------");
+    // console.log("-----------------------");
 
     const cancelDate = getCancelDate();
     const referenceDate = dayjs(cancelDate);
 
-    console.log("Data início:", contractStart.format("DD/MM/YYYY"));
-    console.log("Data fim:", contractEnd.format("DD/MM/YYYY"));
-    console.log("Data referência (cancelamento):", referenceDate.format("DD/MM/YYYY"));
+    // console.log("Data início:", contractStart.format("DD/MM/YYYY"));
+    // console.log("Data fim:", contractEnd.format("DD/MM/YYYY"));
+    // console.log("Data referência (cancelamento):", referenceDate.format("DD/MM/YYYY"));
 
     if (contractEnd.isBefore(referenceDate) || contractEnd.isSame(referenceDate)) {
       return { totalMonths: 0, display: "N/A" };
@@ -51,8 +51,8 @@ const ContractItems = ({ contractItems, contract, loading }) => {
 
     const totalMonths = diffInDays > 0 ? diffInMonths + 1 : diffInMonths;
 
-    console.log(`Restam: ${diffInMonths} meses e ${diffInDays} dias`);
-    console.log(`Meses para cálculo da multa: ${totalMonths}`);
+    // console.log(`Restam: ${diffInMonths} meses e ${diffInDays} dias`);
+    // console.log(`Meses para cálculo da multa: ${totalMonths}`);
 
     let display = "";
     if (totalMonths > 0) {

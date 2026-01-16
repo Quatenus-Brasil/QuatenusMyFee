@@ -32,7 +32,6 @@ function App() {
       return;
     }
 
-    console.log("Estado:", state);
     setContracts([]);
     setLoading(true);
     const body = {
@@ -51,7 +50,6 @@ function App() {
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/getDocuments`, body);
-      console.log(response);
       setContracts(response.data.d.Rows);
     } catch (error) {
       console.error(error);
