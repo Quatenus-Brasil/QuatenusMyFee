@@ -2,8 +2,8 @@ const Searchbar = ({ search, setSearch, setState, handleSearch, loading }) => {
   return (
     <div className="input-group mb-3 mt-2">
       <div className="me-1">
-        <select class="form-select" aria-label="Estado do contrato" onChange={(e) => setState(e.target.value)}>
-          <option selected value="0,14,1,2,3">Todos</option>
+        <select className="form-select" aria-label="Estado do contrato" onChange={(e) => setState(e.target.value)}>
+          <option defaultValue value="0,14,1,2,3">Todos</option>
           <option value="0">Preliminar</option>
           <option value="14">Aguardando assinatura</option>
           <option value="1">Emitido</option>
