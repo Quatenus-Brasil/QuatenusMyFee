@@ -85,10 +85,10 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
 
       pdf.text(`${contract.CustomerBusinessEntityDescription}`, margin, yPosition);
       yPosition += 5;
-      
+
       pdf.setFontSize(10);
       pdf.setFont("helvetica", "normal");
-      
+
       pdf.text(`N° Contrato: ${contract.QbmDocumentId}`, margin, yPosition);
       yPosition += 10;
 
@@ -286,11 +286,25 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
                         <table className="table table-sm table-bordered">
                           <thead>
                             <tr>
-                              <th>Pr. Unitário</th>
-                              <th>Multa Contratual (%)</th>
-                              <th>Multa</th>
-                              <th>Taxa de Finalização</th>
-                              <th>Placa do Veículo</th>
+                              <th>
+                                <p className="m-0 p-0">Pr. Unitário</p>
+                              </th>
+                              <th>
+                                <p className="m-0 p-0 link-qorange" title={import.meta.env.VITE_TITLE_MULTA}>
+                                  Multa Contratual (%)
+                                </p>
+                              </th>
+                              <th>
+                                <p className="m-0 p-0">Multa</p>
+                              </th>
+                              <th>
+                                <p className="m-0 p-0 link-qorange" title={import.meta.env.VITE_TITLE_TAXA_FINALIZACAO}>
+                                  Taxa de Finalização
+                                </p>
+                              </th>
+                              <th>
+                                <p className="m-0 p-0">Placa do Veículo</p>
+                              </th>
                             </tr>
                           </thead>
                           <tbody>

@@ -100,19 +100,19 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   const handleNext = () => {
     const calculatedData = selectedContractItems.map((item) => {
       const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
-      
+
       let itemMonthsLeft;
       if (item.QbmItemCode.includes("CHIP")) {
         const chipFidelity = chipFidelities[itemId];
-        itemMonthsLeft = chipFidelity ? {
-          totalMonths: chipFidelity,
-          display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`
-        } : { totalMonths: 0, display: "N/A" };
+        itemMonthsLeft = chipFidelity
+          ? {
+              totalMonths: chipFidelity,
+              display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`,
+            }
+          : { totalMonths: 0, display: "N/A" };
       } else {
         const itemFidelityValue = parseInt(getItemFidelity(item));
-        itemMonthsLeft = itemFidelityValue > 0 ? 
-          getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : 
-          { totalMonths: 0, display: "N/A" };
+        itemMonthsLeft = itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : { totalMonths: 0, display: "N/A" };
       }
 
       const quantity = quantities[itemId] || item.Quantity;
@@ -174,23 +174,25 @@ const ContractItems = ({ contractItems, contract, loading }) => {
 
   const getAvailableFidelities = () => {
     const fidelities = new Set();
-    
+
     selectedContractItems.forEach((item) => {
       if (!item.QbmItemCode.includes("CHIP")) {
         const itemFidelityValue = parseInt(getItemFidelity(item));
         if (itemFidelityValue > 0) {
           const itemMonthsLeft = getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid);
           if (itemMonthsLeft.totalMonths > 0) {
-            fidelities.add(JSON.stringify({
-              value: itemMonthsLeft.totalMonths,
-              display: itemMonthsLeft.display
-            }));
+            fidelities.add(
+              JSON.stringify({
+                value: itemMonthsLeft.totalMonths,
+                display: itemMonthsLeft.display,
+              }),
+            );
           }
         }
       }
     });
 
-    return Array.from(fidelities).map(f => JSON.parse(f));
+    return Array.from(fidelities).map((f) => JSON.parse(f));
   };
 
   const calculateNetValue = (item, itemId) => {
@@ -284,32 +286,57 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                       <table className="table table-sm table-bordered table-hover">
                         <thead>
                           <tr>
-                            <th>Itens do Contrato</th>
-                            <th>QNT</th>
-                            <th>Pr. Unit.</th>
-                            <th>Fidelidade Restante</th>
-                            <th>Multa Contratual (%)</th>
-                            <th>Multa</th>
-                            <th>Taxa de Finalização</th>
-                            <th>Total</th>
+                            <th>
+                              <p className="m-0 p-0">Itens do Contrato</p>
+                            </th>
+                            <th>
+                              <p className="m-0 p-0">QNT</p>
+                            </th>
+                            <th>
+                              <p className="m-0 p-0">Pr. Unit.</p>
+                            </th>
+                            <th>
+                              <p className="m-0 p-0">Fidelidade Restante</p>
+                            </th>
+                            <th>
+                              <p
+                                className="m-0 p-0 link-qorange"
+                                title={import.meta.env.VITE_TITLE_MULTA}>
+                                Multa Contratual (%)
+                              </p>
+                            </th>
+                            <th>
+                              <p className="m-0 p-0">Multa</p>
+                            </th>
+                            <th>
+                              <p
+                                className="m-0 p-0 link-qorange"
+                                title={import.meta.env.VITE_TITLE_TAXA_FINALIZACAO}>
+                                Taxa de Finalização
+                              </p>
+                            </th>
+                            <th>
+                              <p className="m-0 p-0">Total</p>
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {selectedContractItems.map((item) => {
                             const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
-                            
+
                             let itemMonthsLeft;
                             if (item.QbmItemCode.includes("CHIP")) {
                               const chipFidelity = chipFidelities[itemId];
-                              itemMonthsLeft = chipFidelity ? {
-                                totalMonths: chipFidelity,
-                                display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`
-                              } : { totalMonths: 0, display: "N/A" };
+                              itemMonthsLeft = chipFidelity
+                                ? {
+                                    totalMonths: chipFidelity,
+                                    display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`,
+                                  }
+                                : { totalMonths: 0, display: "N/A" };
                             } else {
                               const itemFidelityValue = parseInt(getItemFidelity(item));
-                              itemMonthsLeft = itemFidelityValue > 0 ? 
-                                getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : 
-                                { totalMonths: 0, display: "N/A" };
+                              itemMonthsLeft =
+                                itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : { totalMonths: 0, display: "N/A" };
                             }
                             return (
                               <tr key={itemId}>

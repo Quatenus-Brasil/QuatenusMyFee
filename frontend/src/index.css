@@ -99,3 +99,9 @@ input[type="number"] {
 .text-qorange {
   color: var(--primary);
 }
+
+.link-qorange {
+  cursor: help;
+  color: var(--primary);
+  text-decoration: underline;
+}
