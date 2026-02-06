@@ -417,7 +417,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                   <button type="button" className="btn btn-sm btn-secondary" onClick={closeModal}>
                     Cancelar
                   </button>
-                  <button type="button" className="btn btn-sm btn-qorange" disabled={selectedContractItems.length === 0} onClick={handleNext}>
+                  <button type="button" className="btn btn-sm btn-qorange" disabled={selectedContractItems.length === 0} onClick={(e) => handleNext()}>
                     Próximo
                   </button>
                 </div>

@@ -2,15 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Logo from "../assets/LogoQuatenus.png";
+import axios from "axios";
 
 const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCancelDate }) => {
-  const [selectedDevices, setSelectedDevices] = useState({});
+  const [selectedDevicesQuantity, setSelectedDevicesQuantity] = useState({});
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [devices, setDevices] = useState({});
   const modalContentRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (show && calculatedData.length > 0) {
       initializeDeviceSelections();
+      getDevices();
     }
   }, [show, calculatedData]);
 
@@ -19,11 +23,54 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
     calculatedData.forEach((item) => {
       initialSelections[item.itemId] = Array(item.quantity).fill("");
     });
-    setSelectedDevices(initialSelections);
+    setSelectedDevicesQuantity(initialSelections);
+  };
+
+  const getDevices = async () => {
+    setDevices({});
+    setLoading(true);
+
+    try {
+      const devicePromises = calculatedData.map(async (item) => {
+        if (!item.QbmDocumentItemId) {
+          return { itemId: item.itemId, devices: [] };
+        }
+
+        const body = {
+          documentItemId: item.QbmDocumentItemId,
+          cultureInfo: "pt-BR",
+          timeZoneId: "E. South America Standard Time",
+          userName: localStorage.getItem("qbmUsername"),
+          password: localStorage.getItem("qbmPassword"),
+        };
+
+        try {
+          const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/GetExternalContractsItemsDevices`, body);
+          const deviceCodes = response.data.Rows.map((device) => device.DeviceCode);
+          return { itemId: item.itemId, devices: deviceCodes };
+        } catch (error) {
+          console.error("Erro ao buscar dispositivos para item:", item.QbmItemCode, error);
+          return { itemId: item.itemId, devices: [] };
+        }
+      });
+
+      const results = await Promise.all(devicePromises);
+      const devicesMap = {};
+      results.forEach((result) => {
+        devicesMap[result.itemId] = result.devices;
+      });
+
+      setDevices(devicesMap);
+    } catch (error) {
+      console.error("Erro geral ao buscar dispositivos:", error);
+      alert("Erro ao buscar dispositivos. Entre em contato com o suporte.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeviceChange = (itemId, index, deviceId) => {
-    setSelectedDevices((prev) => {
+    setSelectedDevicesQuantity((prev) => {
       const newSelections = { ...prev };
       if (!newSelections[itemId]) {
         newSelections[itemId] = [];
@@ -35,12 +82,12 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
 
   const handleConfirm = async () => {
     const allValid = calculatedData.every((item) => {
-      const selections = selectedDevices[item.itemId] || [];
-      return selections.length === item.quantity && selections.every((selection) => selection.trim() !== "");
+      const selections = selectedDevicesQuantity[item.itemId] || [];
+      return selections.length === item.quantity && selections.every((selection) => selection && selection.trim() !== "");
     });
 
     if (!allValid) {
-      alert("Por favor, informe a placa do veículo ou N/A para todas as linhas.");
+      alert("Por favor, selecione um dispositivo ou N/A para todas as linhas.");
       return;
     }
 
@@ -144,7 +191,7 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
         yPosition += 3;
 
         const tableData = [];
-        const deviceSelections = selectedDevices[item.itemId] || [];
+        const deviceSelections = selectedDevicesQuantity[item.itemId] || [];
 
         for (let i = 0; i < item.quantity; i++) {
           tableData.push([
@@ -216,7 +263,7 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
   };
 
   const handleClose = () => {
-    setSelectedDevices({});
+    setSelectedDevicesQuantity({});
     onClose();
   };
 
@@ -269,7 +316,14 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
               </p>
 
               {calculatedData.map((item) => {
-                const deviceSelections = selectedDevices[item.itemId] || [];
+                const deviceSelections = selectedDevicesQuantity[item.itemId] || [];
+                const itemDevices = devices[item.itemId] || [];
+
+                // Função para obter devices disponíveis para cada linha
+                const getAvailableDevices = (currentIndex) => {
+                  const selectedInThisItem = deviceSelections.filter((_, idx) => idx !== currentIndex);
+                  return itemDevices.filter((device) => !selectedInThisItem.includes(device));
+                };
 
                 return (
                   <div key={item.itemId} className="mb-4 p-3 border rounded">
@@ -329,15 +383,24 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
                                     currency: "BRL",
                                   }).format(item.fee)}
                                 </td>
-                                <td>
-                                  <input
-                                    type="text"
-                                    className="form-control form-control-sm"
-                                    value={deviceSelections[index] || ""}
-                                    onChange={(e) => handleDeviceChange(item.itemId, index, e.target.value)}
-                                    placeholder="Digite a placa ou N/A"
-                                  />
-                                </td>
+                                {loading ? (
+                                  <td className="form-control form-control-sm">Carregando dispositivos...</td>
+                                ) : (
+                                  <td>
+                                    <select
+                                      className="form-select form-select-sm"
+                                      value={deviceSelections[index] || ""}
+                                      onChange={(e) => handleDeviceChange(item.itemId, index, e.target.value)}>
+                                      <option value="">Selecione um dispositivo</option>
+                                      <option value="N/A">N/A</option>
+                                      {getAvailableDevices(index).map((device, deviceIndex) => (
+                                        <option key={deviceIndex} value={device}>
+                                          {device}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </td>
+                                )}
                               </tr>
                             ))}
                           </tbody>
