@@ -36,7 +36,9 @@ npm install
 npm run dev
 ```
 
-O servidor estará rodando na porta configurada (padrão: 5556).
+Atenção: Você precisa criar um arquivo .env e preencher ele com base no arquivo .env.example.
+
+O servidor estará rodando na porta configurada no .env ou na padrão: 5556.
 
 ### Frontend
 
@@ -47,6 +49,8 @@ cd frontend
 npm install
 npm run dev
 ```
+
+Atenção: Você precisa criar um arquivo .env e preencher ele com base no arquivo .env.example.
 
 A aplicação estará disponível em `http://localhost:5173` (porta padrão do Vite).
 
