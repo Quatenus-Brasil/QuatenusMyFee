@@ -14,7 +14,7 @@ const Searchbar = ({ search, setSearch, setState, handleSearch, loading }) => {
       <input
         type="search"
         className="form-control"
-        placeholder="Pesquise aqui contrato ou empresa"
+        placeholder="Pesquise aqui o contrato ou empresa"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
