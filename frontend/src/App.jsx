@@ -3,6 +3,7 @@ import myFeeLogo from "/logo-laranja.png";
 import Searchbar from "./components/Searchbar.jsx";
 import ContractAccodion from "./components/ContractAccodion.jsx";
 import ConfigSidebar from "./components/ConfigSidebar.jsx";
+import QuestionsButton from "./components/QuestionsButton.jsx";
 import axios from "axios";
 
 function App() {
@@ -80,6 +81,7 @@ function App() {
   return (
     <>
       <ConfigSidebar />
+      <QuestionsButton />
 
       <div>
         <img src={myFeeLogo} className="logo" alt="Logo do MyFee" onClick={handleLogoClick} style={{ cursor: "pointer" }} />
