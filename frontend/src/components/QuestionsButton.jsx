@@ -46,12 +46,6 @@ const QuestionsButton = () => {
               Processo de Cancelamento PARCIAL - Cancelamento de Licença
             </a>
           </div>
-
-          <div className="mb-3">
-            <a href={import.meta.env.VITE_LINK_CANCELAMENTO_INADIMPLENCIA} target="_blank" rel="noopener noreferrer">
-              Processo de Cancelamento Contratual por Inadimplência
-            </a>
-          </div>
         </div>
       </div>
     </>
