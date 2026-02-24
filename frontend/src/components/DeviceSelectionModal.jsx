@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
+import dayjs from "dayjs";
 import autoTable from "jspdf-autotable";
 import Logo from "../assets/LogoQuatenus.png";
 import axios from "axios";
 
-const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCancelDate }) => {
+const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, requestDate, getCancelDate }) => {
   const [selectedDevicesQuantity, setSelectedDevicesQuantity] = useState({});
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [devices, setDevices] = useState({});
@@ -147,12 +148,12 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
       pdf.setFont("helvetica", "bold");
       pdf.text("Data da Solicitação:", margin + 60, yPosition);
       pdf.setFont("helvetica", "normal");
-      pdf.text(new Date().toLocaleDateString("pt-BR"), margin + 60, yPosition + 5);
+      pdf.text(dayjs(requestDate).format("DD/MM/YYYY"), margin + 60, yPosition + 5);
 
       pdf.setFont("helvetica", "bold");
       pdf.text("Data de Encerramento:", margin + 120, yPosition);
       pdf.setFont("helvetica", "normal");
-      pdf.text(getCancelDate().toLocaleDateString("pt-BR"), margin + 120, yPosition + 5);
+      pdf.text(getCancelDate().format("DD/MM/YYYY"), margin + 120, yPosition + 5);
 
       yPosition += 15;
 
@@ -249,8 +250,8 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
 
       pdf.setTextColor(0, 0, 0);
 
-      const now = new Date();
-      const timestamp = now.toLocaleDateString("pt-BR").replace(/\//g, "-") + "_" + now.toLocaleTimeString("pt-BR").replace(/:/g, "-");
+      const now = dayjs();
+      const timestamp = now.format("DD-MM-YYYY_HH-mm-ss");
       const fileName = `Memorial_Cancelamento_${contract.QbmDocumentId}_${timestamp}.pdf`;
 
       pdf.save(fileName);
@@ -298,14 +299,14 @@ const DeviceSelectionModal = ({ show, onClose, calculatedData, contract, getCanc
                     <p className="mb-2">
                       <strong>Data da Solicitação:</strong>
                       <br />
-                      {new Date().toLocaleDateString("pt-BR")}
+                      {dayjs(requestDate).format("DD/MM/YYYY")}
                     </p>
                   </div>
                   <div className="col-md-4">
                     <p className="mb-2">
                       <strong>Data de Encerramento:</strong>
                       <br />
-                      {getCancelDate().toLocaleDateString("pt-BR")}
+                      {getCancelDate().format("DD/MM/YYYY")}
                     </p>
                   </div>
                 </div>

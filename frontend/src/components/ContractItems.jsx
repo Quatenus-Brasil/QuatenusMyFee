@@ -11,6 +11,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   const [percentages, setPercentages] = useState({});
   const [fees, setFees] = useState({});
   const [chipFidelities, setChipFidelities] = useState({});
+  const [requestDate, setRequestDate] = useState(dayjs().format("YYYY-MM-DD"));
 
   const getItemFidelity = (item) => {
     const description = item.QbmItemDescription || "";
@@ -68,11 +69,11 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   };
 
   const getCancelDate = () => {
-    let cancelDate = new Date();
+    let cancelDate = dayjs(requestDate, "YYYY-MM-DD");
 
     if (localStorage.getItem("sector") === "CS") {
-      const nextMonth = new Date(cancelDate.getFullYear(), cancelDate.getMonth() + 1, cancelDate.getDate());
-      cancelDate = nextMonth;
+      // Antes estava como 'cancelDate.add(1, "month");', mas ao falar com o Vitor mudei para adicionar 30 dias mesmo.
+      cancelDate = cancelDate.add(30, "days");
     }
     return cancelDate;
   };
@@ -86,6 +87,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   };
 
   const handleClick = () => {
+    setRequestDate(dayjs().format("YYYY-MM-DD"));
     setShowModal(true);
   };
 
@@ -276,13 +278,20 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                   <p>
                     <strong>Data do Contrato:</strong> {contract.DocumentDateToGrid.split(" ")[0]}
                   </p>
-                  <p>
-                    <strong>Data da Solicitação:</strong> {new Date().toLocaleDateString("pt-BR")} <strong>Data de Encerramento:</strong>{" "}
-                    {getCancelDate().toLocaleDateString("pt-BR")}{" "}
-                  </p>
+                  <div className="mb-3">
+                    <strong>Data da Solicitação:</strong>{" "}
+                    <input type="date" name="requestDate" id="requestDate" value={requestDate} onChange={(e) => setRequestDate(e.target.value)} />{" "}
+                    <strong>Data de Encerramento:</strong> {getCancelDate().format("DD/MM/YYYY")}{" "}
+                    {requestDate !== dayjs().format("YYYY-MM-DD") ? (
+                      <p className="ps-1 mb-0 mt-1 animated-background text-center">
+                        <strong>Atenção:</strong> Alterar a data de solicitação irá modificar o cálculo da multa. Tenha certeza do que <strong>você</strong>{" "}
+                        está fazendo.
+                      </p>
+                    ) : null}
+                  </div>
 
                   {selectedContractItems.length > 0 && (
-                    <div className="">
+                    <div>
                       <table className="table table-sm table-bordered table-hover">
                         <thead>
                           <tr>
@@ -299,9 +308,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                               <p className="m-0 p-0">Fidelidade Restante</p>
                             </th>
                             <th>
-                              <p
-                                className="m-0 p-0 link-qorange"
-                                title={import.meta.env.VITE_TITLE_MULTA}>
+                              <p className="m-0 p-0 link-qorange" title={import.meta.env.VITE_TITLE_MULTA}>
                                 Multa Contratual (%)
                               </p>
                             </th>
@@ -309,9 +316,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                               <p className="m-0 p-0">Multa</p>
                             </th>
                             <th>
-                              <p
-                                className="m-0 p-0 link-qorange"
-                                title={import.meta.env.VITE_TITLE_TAXA_FINALIZACAO}>
+                              <p className="m-0 p-0 link-qorange" title={import.meta.env.VITE_TITLE_TAXA_FINALIZACAO}>
                                 Taxa de Finalização
                               </p>
                             </th>
@@ -432,6 +437,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
         onClose={handleDeviceModalClose}
         calculatedData={calculatedData}
         contract={contract}
+        requestDate={requestDate}
         getCancelDate={getCancelDate}
       />
     </div>

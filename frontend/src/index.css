@@ -105,3 +105,16 @@ input[type="number"] {
   color: var(--primary);
   text-decoration: underline;
 }
+
+.animated-background {
+  animation: color-transition 1s infinite alternate;
+}
+
+@keyframes color-transition {
+  0% {
+    background-color: white
+  }
+  100% {
+    background-color: var(--primary);
+  }
+}
