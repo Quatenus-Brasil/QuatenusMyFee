@@ -25,6 +25,23 @@ const ContractItems = ({ contractItems, contract, loading }) => {
     return 0;
   };
 
+  const getItemMonthsLeft = (item) => {
+    if (item.QbmItemCode.includes("CHIP") || item.QbmItemCode.includes("WEB")) {
+      const chipFidelity = chipFidelities[`${item.QbmItemCode}-${item.UnitPrice}`];
+      return chipFidelity
+        ? {
+            totalMonths: chipFidelity,
+            display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`,
+          }
+        : { totalMonths: 0, display: "N/A" };
+    } else {
+      const itemFidelityValue = parseInt(getItemFidelity(item));
+      return itemFidelityValue > 0 
+        ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) 
+        : { totalMonths: 0, display: "N/A" };
+    }
+  };
+
   const getMonthsLeft = (fidelity, contractDate) => {
     if (fidelity === 0) return { totalMonths: 0, display: "N/A" };
 
@@ -102,21 +119,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
   const handleNext = () => {
     const calculatedData = selectedContractItems.map((item) => {
       const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
-
-      let itemMonthsLeft;
-      if (item.QbmItemCode.includes("CHIP")) {
-        const chipFidelity = chipFidelities[itemId];
-        itemMonthsLeft = chipFidelity
-          ? {
-              totalMonths: chipFidelity,
-              display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`,
-            }
-          : { totalMonths: 0, display: "N/A" };
-      } else {
-        const itemFidelityValue = parseInt(getItemFidelity(item));
-        itemMonthsLeft = itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : { totalMonths: 0, display: "N/A" };
-      }
-
+      const itemMonthsLeft = getItemMonthsLeft(item);
       const quantity = quantities[itemId] || item.Quantity;
       const percentage = percentages[itemId] || 50;
       const fee = fees[itemId] ?? 300;
@@ -178,7 +181,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
     const fidelities = new Set();
 
     selectedContractItems.forEach((item) => {
-      if (!item.QbmItemCode.includes("CHIP")) {
+      if (!item.QbmItemCode.includes("CHIP") || item.QbmItemCode.includes("WEB")) {
         const itemFidelityValue = parseInt(getItemFidelity(item));
         if (itemFidelityValue > 0) {
           const itemMonthsLeft = getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid);
@@ -328,21 +331,8 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                         <tbody>
                           {selectedContractItems.map((item) => {
                             const itemId = `${item.QbmItemCode}-${item.UnitPrice}`;
+                            const itemMonthsLeft = getItemMonthsLeft(item);
 
-                            let itemMonthsLeft;
-                            if (item.QbmItemCode.includes("CHIP")) {
-                              const chipFidelity = chipFidelities[itemId];
-                              itemMonthsLeft = chipFidelity
-                                ? {
-                                    totalMonths: chipFidelity,
-                                    display: `${chipFidelity} ${chipFidelity === 1 ? "mês" : "meses"}`,
-                                  }
-                                : { totalMonths: 0, display: "N/A" };
-                            } else {
-                              const itemFidelityValue = parseInt(getItemFidelity(item));
-                              itemMonthsLeft =
-                                itemFidelityValue > 0 ? getMonthsLeft(itemFidelityValue, contract.DocumentDateToGrid) : { totalMonths: 0, display: "N/A" };
-                            }
                             return (
                               <tr key={itemId}>
                                 <td>
@@ -365,7 +355,7 @@ const ContractItems = ({ contractItems, contract, loading }) => {
                                   {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(item.UnitPrice)}
                                 </td>
                                 <td>
-                                  {item.QbmItemCode.includes("CHIP") ? (
+                                  {item.QbmItemCode.includes("CHIP") || item.QbmItemCode.includes("WEB") ? (
                                     <select
                                       className="form-select form-select-sm"
                                       value={chipFidelities[itemId] || ""}
